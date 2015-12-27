@@ -1,0 +1,81 @@
+---
+title: "Practical Machine Learning - Weight Lifting Exercises"
+author: "Chong Wen Mau"
+date: "December 26, 2015"
+output: html_document
+---
+
+##Overview
+This report documents the prediction model building to predict the manner in which people did the exercise. 
+
+The data from accelerometers on the belt, forearm, arm, and dumbell of 6 participant will be used as training data. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways. 
+
+The training data consists of 160 variables and 19622 observations. The outcome variable is "classe".
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+library(AppliedPredictiveModeling)
+library(caret)
+library(rpart)
+
+training = read.csv("pml-training.csv")
+testing = read.csv("pml-testing.csv")
+```
+
+## Data Cleaning
+
+1. In the data cleaning process, the computed variables, such as average, stanrdard deviation, minimum value, max value, variance, skewness, kurtosis and amplitude have been removed. 
+
+2. Then, the data rows with missing values have been excluded for the model training.
+
+```{r}
+
+computedVarPattern = "avg|stddev|min|max|var|skewness|kurtosis|amplitude"
+new_training = training[,names(training)[-grep(computedVarPattern, names(training))]]
+
+new_training = new_training[complete.cases(new_training),]
+
+#All measurement variables are converted to numeric type.
+
+for (i in 7:59)
+{
+  new_training[,i] <- as.numeric(new_training[,i])
+}
+```
+
+## Model Training
+
+The model is trained using Classification and Regression Tree algorithm with 10- fold cross validation.
+
+The classification tree algorithm is employed in model training because the outcome variable is categorical and the result is easier to be interpreted.
+
+75 % of the training data are used for model training and the remaining are used for model testing.
+
+```{r}
+
+set.seed(12345)
+
+inTrain = createDataPartition(new_training$classe, p = 0.75)[[1]]
+trainSet = new_training[inTrain,]
+testSet = new_training[-inTrain,]
+
+trainControl = trainControl(method = "cv", number = 10)
+
+#Include the measurement variables only
+modFit = train(classe ~ ., method="rpart", trControl = trainControl, data = trainSet[-1:-7])
+
+modFit$finalModel
+```
+
+##Model Evaluation
+
+In sample error
+
+```{r}
+sum(predict(modFit, trainSet) != trainSet$classe) / nrow(trainSet)
+```
+
+Out of sample error
+```{r}
+sum(predict(modFit, testSet) != testSet$classe) / nrow(testSet)
+```
+
