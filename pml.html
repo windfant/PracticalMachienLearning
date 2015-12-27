@@ -94,8 +94,8 @@ for (i in 7:59)
 </div>
 <div id="model-training" class="section level2">
 <h2>Model Training</h2>
-<p>The model is trained using Classification and Regression Tree algorithm with 10- fold cross validation.</p>
-<p>The classification tree algorithm is employed in model training because the outcome variable is categorical and the result is easier to be interpreted.</p>
+<p>The model is trained using boosting with tree algorithm with 10-fold cross validation.</p>
+<p>The boosting with tree algorithm is employed in model training because the outcome variable is categorical and the result is easier to be interpreted.</p>
 <p>75 % of the training data are used for model training and the remaining are used for model testing.</p>
 <pre class="r"><code>set.seed(12345)
 
@@ -106,38 +106,24 @@ testSet = new_training[-inTrain,]
 trainControl = trainControl(method = &quot;cv&quot;, number = 10)
 
 #Include the measurement variables only
-modFit = train(classe ~ ., method=&quot;rpart&quot;, trControl = trainControl, data = trainSet[-1:-7])
+
+modFit = train(classe ~ ., method=&quot;gbm&quot;, trControl = trainControl, data = trainSet[-1:-7], verbose=FALSE)
+
 
 modFit$finalModel</code></pre>
-<pre><code>## n= 14718 
-## 
-## node), split, n, loss, yval, (yprob)
-##       * denotes terminal node
-## 
-##   1) root 14718 10533 A (0.28 0.19 0.17 0.16 0.18)  
-##     2) roll_belt&lt; 130.5 13467  9291 A (0.31 0.21 0.19 0.18 0.11)  
-##       4) pitch_forearm&lt; -33.95 1175     8 A (0.99 0.0068 0 0 0) *
-##       5) pitch_forearm&gt;=-33.95 12292  9283 A (0.24 0.23 0.21 0.2 0.12)  
-##        10) yaw_belt&gt;=169.5 606    59 A (0.9 0.046 0 0.045 0.0066) *
-##        11) yaw_belt&lt; 169.5 11686  8874 B (0.21 0.24 0.22 0.2 0.12)  
-##          22) magnet_dumbbell_z&lt; -88.5 1493   638 A (0.57 0.28 0.046 0.076 0.023) *
-##          23) magnet_dumbbell_z&gt;=-88.5 10193  7695 C (0.16 0.23 0.25 0.22 0.14)  
-##            46) pitch_belt&lt; -42.95 606   102 B (0.017 0.83 0.097 0.028 0.026) *
-##            47) pitch_belt&gt;=-42.95 9587  7148 C (0.17 0.2 0.25 0.24 0.15)  
-##              94) magnet_dumbbell_x&gt;=-447.5 4142  2886 B (0.17 0.3 0.097 0.24 0.19)  
-##               188) roll_belt&lt; 117.5 2562  1439 B (0.17 0.44 0.023 0.12 0.25) *
-##               189) roll_belt&gt;=117.5 1580   906 D (0.18 0.084 0.22 0.43 0.095) *
-##              95) magnet_dumbbell_x&lt; -447.5 5445  3408 C (0.16 0.12 0.37 0.23 0.11) *
-##     3) roll_belt&gt;=130.5 1251     9 E (0.0072 0 0 0 0.99) *</code></pre>
+<pre><code>## A gradient boosted model with multinomial loss function.
+## 150 iterations were performed.
+## There were 52 predictors of which 42 had non-zero influence.</code></pre>
 </div>
 <div id="model-evaluation" class="section level2">
 <h2>Model Evaluation</h2>
 <p>In sample error</p>
 <pre class="r"><code>sum(predict(modFit, trainSet) != trainSet$classe) / nrow(trainSet)</code></pre>
-<pre><code>## [1] 0.4463242</code></pre>
+<pre><code>## [1] 0.0243919</code></pre>
 <p>Out of sample error</p>
 <pre class="r"><code>sum(predict(modFit, testSet) != testSet$classe) / nrow(testSet)</code></pre>
-<pre><code>## [1] 0.4584013</code></pre>
+<pre><code>## [1] 0.0389478</code></pre>
+<p>In summary, the constructed model performs rather good with less than 5% of in sample error and out of sample error.</p>
 </div>
 
 
